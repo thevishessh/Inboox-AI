@@ -74,7 +74,6 @@ export default function SignupPage() {
                   value={formData.firstName}
                   onChange={handleChange}
                   className="w-full bg-surface-light border border-border rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                  placeholder="John"
                   required
                 />
               </div>
@@ -89,7 +88,6 @@ export default function SignupPage() {
                   value={formData.lastName}
                   onChange={handleChange}
                   className="w-full bg-surface-light border border-border rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                  placeholder="Doe"
                   required
                 />
               </div>
@@ -106,7 +104,6 @@ export default function SignupPage() {
                 value={formData.email}
                 onChange={handleChange}
                 className="w-full bg-surface-light border border-border rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                placeholder="name@company.com"
                 required
               />
             </div>
@@ -122,7 +119,6 @@ export default function SignupPage() {
                 value={formData.password}
                 onChange={handleChange}
                 className="w-full bg-surface-light border border-border rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                placeholder="••••••••"
                 required
               />
             </div>
