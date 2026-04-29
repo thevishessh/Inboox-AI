@@ -72,7 +72,8 @@ public class EmailDraftService {
         if (auth == null) return;
         
         String email = auth.getName();
-        User user = userRepository.findByEmail(email).orElseThrow();
+        User user = userRepository.findFirstByEmail(email).orElseThrow();
+
         
         EmailDraft draft = EmailDraft.builder()
                 .content(generated)
@@ -86,7 +87,8 @@ public class EmailDraftService {
 
     public List<EmailDraft> getHistory() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email).orElseThrow();
+        User user = userRepository.findFirstByEmail(email).orElseThrow();
         return repository.findByUser(user);
+
     }
 }

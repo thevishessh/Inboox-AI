@@ -30,7 +30,7 @@ public class UserController {
     @PutMapping("/profile")
     public ResponseEntity<?> updateProfile(@RequestHeader("Authorization") String token, @RequestBody User profileUpdate) {
         String email = jwtService.extractUsername(token.substring(7));
-        return userRepository.findByEmail(email).map(user -> {
+        return userRepository.findFirstByEmail(email).map(user -> {
             user.setFirstName(profileUpdate.getFirstName());
             user.setLastName(profileUpdate.getLastName());
             user.setBio(profileUpdate.getBio());
@@ -45,7 +45,7 @@ public class UserController {
     @PutMapping("/settings")
     public ResponseEntity<?> updateSettings(@RequestHeader("Authorization") String token, @RequestBody User settingsUpdate) {
         String email = jwtService.extractUsername(token.substring(7));
-        return userRepository.findByEmail(email).map(user -> {
+        return userRepository.findFirstByEmail(email).map(user -> {
             user.setDefaultTone(settingsUpdate.getDefaultTone());
             user.setAiModel(settingsUpdate.getAiModel());
             user.setResponseLength(settingsUpdate.getResponseLength());
@@ -62,7 +62,7 @@ public class UserController {
     @PostMapping("/billing/upgrade")
     public ResponseEntity<?> upgradePlan(@RequestHeader("Authorization") String token, @RequestBody Map<String, String> planRequest) {
         String email = jwtService.extractUsername(token.substring(7));
-        return userRepository.findByEmail(email).map(user -> {
+        return userRepository.findFirstByEmail(email).map(user -> {
             String newPlan = planRequest.get("plan");
             user.setCurrentPlan(newPlan);
             if ("Pro Professional".equals(newPlan)) {
