@@ -22,7 +22,7 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String token) {
         String email = jwtService.extractUsername(token.substring(7));
-        return userRepository.findByEmail(email)
+        return userRepository.findFirstByEmail(email)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -49,9 +49,12 @@ public class UserController {
             user.setDefaultTone(settingsUpdate.getDefaultTone());
             user.setAiModel(settingsUpdate.getAiModel());
             user.setResponseLength(settingsUpdate.getResponseLength());
-            user.setNotifications(settingsUpdate.getNotifications());
+            if (settingsUpdate.getSettings() != null) {
+                user.setSettings(settingsUpdate.getSettings());
+            }
             user.setTwoFactorEnabled(settingsUpdate.isTwoFactorEnabled());
             userRepository.save(user);
+
             return ResponseEntity.ok(user);
         }).orElse(ResponseEntity.notFound().build());
     }

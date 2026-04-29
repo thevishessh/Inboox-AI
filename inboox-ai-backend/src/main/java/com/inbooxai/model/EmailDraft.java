@@ -1,28 +1,26 @@
 package com.inbooxai.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "email_drafts")
+@Document(collection = "email_drafts")
 public class EmailDraft {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     
     private String recipient;
     
     private String subject;
     
-    @Column(columnDefinition = "TEXT")
     private String content;
     
     private String tone;
     
     private LocalDateTime createdAt;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @DBRef
     private User user;
 
     public EmailDraft() {}

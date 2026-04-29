@@ -24,16 +24,25 @@ public class AuthService {
     }
 
     public AuthResponse register(AuthRequest request) {
+        System.out.println("Attempting to register user: " + request.getEmail());
         User user = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .role("USER")
                 .build();
-        repository.save(user);
+        try {
+            repository.save(user);
+            System.out.println("User saved successfully to MongoDB");
+        } catch (Exception e) {
+            System.err.println("CRITICAL: Failed to save user to MongoDB: " + e.getMessage());
+            throw new RuntimeException("Database connection failed. Please check if your IP is whitelisted in MongoDB Atlas.");
+        }
         var userDetails = org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())
                 .password(user.getPassword())
+                .authorities("USER")
                 .build();
         var jwtToken = jwtService.generateToken(userDetails);
         return AuthResponse.builder()
@@ -44,6 +53,7 @@ public class AuthService {
                 .build();
     }
 
+
     public AuthResponse authenticate(AuthRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -51,7 +61,7 @@ public class AuthService {
                         request.getPassword()
                 )
         );
-        var user = repository.findByEmail(request.getEmail())
+        var user = repository.findFirstByEmail(request.getEmail())
                 .orElseThrow();
         var userDetails = org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())

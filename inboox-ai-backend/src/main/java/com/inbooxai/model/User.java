@@ -1,91 +1,188 @@
 package com.inbooxai.model;
 
-import jakarta.persistence.*;
-import java.util.HashMap;
-import java.util.Map;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.security.core.GrantedAuthority;
 
-@Entity
-@Table(name = "users")
-public class User {
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.List;
+
+@Document(collection = "users")
+public class User implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     
-    @Column(unique = true)
-    private String email;
-    private String password;
     private String firstName;
     private String lastName;
-    
-    // Profile Fields
-    private String bio;
+    @Indexed(unique = true)
+    private String email;
+    private String password;
+
     private String role;
+    
+    // Additional fields for profile and settings
+    private String bio;
     private String company;
     private String avatarUrl;
-    
-    // AI Preferences
-    private String defaultTone = "Professional";
-    private String aiModel = "Gemini 1.5 Pro";
-    private String responseLength = "Medium";
-    
-    // Settings & Security
-    private boolean twoFactorEnabled = false;
-    
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_notifications", joinColumns = @JoinColumn(name = "user_id"))
-    @MapKeyColumn(name = "notification_type")
-    @Column(name = "is_enabled")
-    private Map<String, Boolean> notifications = new HashMap<>();
+    private String defaultTone;
+    private String aiModel;
+    private String responseLength;
+    private boolean twoFactorEnabled;
+    private UserSettings settings;
 
-    // Billing & Subscription
-    private String currentPlan = "Free Tier";
-    private String subscriptionStatus = "Active";
-    private int totalCredits = 100;
-    private int usedCredits = 0;
-    private String billingCycle = "Monthly";
-    private String nextBillingDate = "May 25, 2026";
-    
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_payment_methods", joinColumns = @JoinColumn(name = "user_id"))
-    @MapKeyColumn(name = "field_name")
-    @Column(name = "field_value")
-    private Map<String, String> paymentMethod = new HashMap<>();
+    // Billing fields
+    private String currentPlan;
+    private int totalCredits;
+    private int usedCredits;
 
-    public User() {
-        notifications.put("weeklyUsage", true);
-        notifications.put("writingTips", false);
-        notifications.put("activity", true);
-        notifications.put("announcements", true);
-        
-        paymentMethod.put("type", "VISA");
-        paymentMethod.put("last4", "4242");
-        paymentMethod.put("expiry", "12/28");
+    public static class UserSettings {
+        private boolean activity;
+        private boolean weeklyUsage;
+        private boolean writingTips;
+        private boolean announcements;
+
+        public UserSettings() {
+            this.activity = true;
+            this.weeklyUsage = true;
+            this.writingTips = false;
+            this.announcements = true;
+        }
+
+        // Getters and Setters
+        public boolean isActivity() { return activity; }
+        public void setActivity(boolean activity) { this.activity = activity; }
+        public boolean isWeeklyUsage() { return weeklyUsage; }
+        public void setWeeklyUsage(boolean weeklyUsage) { this.weeklyUsage = weeklyUsage; }
+        public boolean isWritingTips() { return writingTips; }
+        public void setWritingTips(boolean writingTips) { this.writingTips = writingTips; }
+        public boolean isAnnouncements() { return announcements; }
+        public void setAnnouncements(boolean announcements) { this.announcements = announcements; }
     }
 
-    public User(String id, String email, String password, String firstName, String lastName) {
+    public User() {
+        this.currentPlan = "Free Starter";
+        this.totalCredits = 50;
+        this.usedCredits = 0;
+        this.settings = new UserSettings();
+    }
+
+    public User(String id, String firstName, String lastName, String email, String password, String role) {
         this();
         this.id = id;
-        this.email = email;
-        this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+    }
+
+    public static UserBuilder builder() {
+        return new UserBuilder();
+    }
+
+    public static class UserBuilder {
+        private String id;
+        private String firstName;
+        private String lastName;
+        private String email;
+        private String password;
+        private String role;
+        private String bio;
+        private String company;
+        private String avatarUrl;
+        private String defaultTone;
+        private String aiModel;
+        private String responseLength;
+        private boolean twoFactorEnabled;
+        private UserSettings settings;
+        private String currentPlan;
+        private int totalCredits;
+        private int usedCredits;
+
+        public UserBuilder id(String id) { this.id = id; return this; }
+        public UserBuilder firstName(String firstName) { this.firstName = firstName; return this; }
+        public UserBuilder lastName(String lastName) { this.lastName = lastName; return this; }
+        public UserBuilder email(String email) { this.email = email; return this; }
+        public UserBuilder password(String password) { this.password = password; return this; }
+        public UserBuilder role(String role) { this.role = role; return this; }
+        public UserBuilder bio(String bio) { this.bio = bio; return this; }
+        public UserBuilder company(String company) { this.company = company; return this; }
+        public UserBuilder avatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; return this; }
+        public UserBuilder defaultTone(String defaultTone) { this.defaultTone = defaultTone; return this; }
+        public UserBuilder aiModel(String aiModel) { this.aiModel = aiModel; return this; }
+        public UserBuilder responseLength(String responseLength) { this.responseLength = responseLength; return this; }
+        public UserBuilder twoFactorEnabled(boolean twoFactorEnabled) { this.twoFactorEnabled = twoFactorEnabled; return this; }
+        public UserBuilder settings(UserSettings settings) { this.settings = settings; return this; }
+        public UserBuilder currentPlan(String currentPlan) { this.currentPlan = currentPlan; return this; }
+        public UserBuilder totalCredits(int totalCredits) { this.totalCredits = totalCredits; return this; }
+        public UserBuilder usedCredits(int usedCredits) { this.usedCredits = usedCredits; return this; }
+        
+        public User build() {
+            User user = new User(id, firstName, lastName, email, password, role);
+            user.setBio(bio);
+            user.setCompany(company);
+            user.setAvatarUrl(avatarUrl);
+            user.setDefaultTone(defaultTone);
+            user.setAiModel(aiModel);
+            user.setResponseLength(responseLength);
+            user.setTwoFactorEnabled(twoFactorEnabled);
+            if (settings != null) user.setSettings(settings);
+            user.setCurrentPlan(currentPlan);
+            user.setTotalCredits(totalCredits);
+            user.setUsedCredits(usedCredits);
+            return user;
+        }
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role));
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 
     // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
     public String getLastName() { return lastName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
-    public String getBio() { return bio; }
-    public void setBio(String bio) { this.bio = bio; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
     public String getCompany() { return company; }
     public void setCompany(String company) { this.company = company; }
     public String getAvatarUrl() { return avatarUrl; }
@@ -96,42 +193,15 @@ public class User {
     public void setAiModel(String aiModel) { this.aiModel = aiModel; }
     public String getResponseLength() { return responseLength; }
     public void setResponseLength(String responseLength) { this.responseLength = responseLength; }
+    public UserSettings getSettings() { return settings; }
+    public void setSettings(UserSettings settings) { this.settings = settings; }
     public boolean isTwoFactorEnabled() { return twoFactorEnabled; }
     public void setTwoFactorEnabled(boolean twoFactorEnabled) { this.twoFactorEnabled = twoFactorEnabled; }
-    public Map<String, Boolean> getNotifications() { return notifications; }
-    public void setNotifications(Map<String, Boolean> notifications) { this.notifications = notifications; }
-
     public String getCurrentPlan() { return currentPlan; }
     public void setCurrentPlan(String currentPlan) { this.currentPlan = currentPlan; }
-    public String getSubscriptionStatus() { return subscriptionStatus; }
-    public void setSubscriptionStatus(String subscriptionStatus) { this.subscriptionStatus = subscriptionStatus; }
     public int getTotalCredits() { return totalCredits; }
     public void setTotalCredits(int totalCredits) { this.totalCredits = totalCredits; }
     public int getUsedCredits() { return usedCredits; }
     public void setUsedCredits(int usedCredits) { this.usedCredits = usedCredits; }
-    public String getBillingCycle() { return billingCycle; }
-    public void setBillingCycle(String billingCycle) { this.billingCycle = billingCycle; }
-    public String getNextBillingDate() { return nextBillingDate; }
-    public void setNextBillingDate(String nextBillingDate) { this.nextBillingDate = nextBillingDate; }
-    public Map<String, String> getPaymentMethod() { return paymentMethod; }
-    public void setPaymentMethod(Map<String, String> paymentMethod) { this.paymentMethod = paymentMethod; }
 
-    public static UserBuilder builder() {
-        return new UserBuilder();
-    }
-
-    public static class UserBuilder {
-        private String id;
-        private String email;
-        private String password;
-        private String firstName;
-        private String lastName;
-
-        public UserBuilder id(String id) { this.id = id; return this; }
-        public UserBuilder email(String email) { this.email = email; return this; }
-        public UserBuilder password(String password) { this.password = password; return this; }
-        public UserBuilder firstName(String firstName) { this.firstName = firstName; return this; }
-        public UserBuilder lastName(String lastName) { this.lastName = lastName; return this; }
-        public User build() { return new User(id, email, password, firstName, lastName); }
-    }
 }
